@@ -1,0 +1,77 @@
+$namespace=rules
+using System.Collections.Generic;
+using System.IO;
+
+COMPILER rules
+
+// public TextWriter trace;
+public DefinitionSet Definitions;
+public RuleSet Rules;
+
+
+public UserMatch FindGroup(string gid)
+{
+    if (!Definitions.ContainsKey(gid))
+        throw new InvalidRuleException("this rule id doesn't exist'");
+    return Definitions[gid];
+}
+
+public void CreateGroup(string gid, UserMatch exp)
+{
+    if (Definitions.ContainsKey(gid))
+        throw new InvalidRuleException("this rule id already exists'");
+    Definitions.Add(gid, exp);
+}
+
+
+CHARACTERS
+    letter    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_".
+    digit     = "0123456789".
+    cr        = '\r'.
+    lf        = '\n'.
+    tab       = '\t'.
+
+TOKENS
+    ident     = letter { letter | digit }.
+    groupMark = '#'.
+    userMark  = '@'.
+    and       = '&'.
+    or        = '|'.
+    not       = '^'.
+    allow     = "allow".
+    deny      = "deny".
+    all       = "all".
+    semicolon = ';'.
+    from = "from".
+
+COMMENTS FROM "/*" TO "*/" NESTED
+COMMENTS FROM "//" TO lf
+
+IGNORE cr + lf + tab
+
+PRODUCTIONS
+
+userId<out string id> = userMark ident (. id = t.val; .).
+
+groupId<out string id> = groupMark ident (. id = t.val; .).
+
+expression<out UserMatch exp> (. exp = null; .) = (. string uid; .) userId<out uid> (. exp = new SingleUserMatch(uid); .)
+           | (. string gid; .) groupId<out gid> (. exp = FindGroup(gid); .)
+           | (. UserMatch left, right; .) expression<out left> and expression<out right> (. exp = left.And(right); .)
+           | (. UserMatch left, right; .) expression<out left> or expression<out right> (. exp = left.And(right); .)
+           | (. UserMatch exp1; .)  not expression<out exp1> (. exp = exp1.Not(); .)
+           | (. UserMatch exp2; .) '(' expression<out exp2> ')' (. exp = exp2; .).
+
+definition (. UserMatch def = new UserMatchUnion(); UserMatch exp; .) 
+     = ident (. CreateGroup(t.val, def); .) 
+     ':' expression<out exp> (. def=def.Or(exp); .) 
+     { ',' expression<out exp>  (. def=def.Or(exp); .) } semicolon.
+
+rule<out Rule ruleItem> = (. UserMatch exp; bool allow=false; .) ( allow (. allow = true; .) | deny (. allow = false; .) ) from expression<out exp> (. ruleItem = allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp) ; .) semicolon.
+
+rules (. Rule ruleItem; .) = { definition } { rule<out ruleItem> (. Rules.Add(ruleItem); .) } .
+
+END rules
+.
+
+
