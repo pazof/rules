@@ -48,6 +48,8 @@ namespace test
             Assert.IsFalse(parser.Rules.Allow("Mom"), "Mom is allowed.");
             Assert.IsFalse(parser.Rules.Deny("Ninou"), "Mom is denied.");
             Assert.IsTrue(parser.Rules.Allow("Ninou"), "Mom is not allowed.");
+            Assert.IsFalse(parser.Rules.Deny("Sherine"), "Mom is denied.");
+            Assert.IsTrue(parser.Rules.Allow("Sherine"), "Mom is not allowed.");
             Assert.IsFalse(parser.Rules.Deny("Soraya"), "Soraya is denied.");
             Assert.IsTrue(parser.Rules.Allow("Soraya"), "Soraya is not allowed.");
         }
