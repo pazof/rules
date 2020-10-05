@@ -51,5 +51,59 @@ namespace test
             Assert.IsFalse(parser.Rules.Deny("Soraya"), "Soraya is denied.");
             Assert.IsTrue(parser.Rules.Allow("Soraya"), "Soraya is not allowed.");
         }
+
+        [Test()]
+        public void TestSimpleAllow()
+        {
+
+            parser.Reset();
+            parser.Parse("allow from @Joe;");
+            Assert.IsTrue(parser.Rules.Allow("Joe"), "Joe is not allowed.");
+            Assert.IsFalse(parser.Rules.Deny("Joe"), "Joe is denied.");
+            Assert.IsFalse(parser.Rules.Allow("Paul"), "Paul is allowed.");
+            Assert.IsTrue(parser.Rules.Deny("Paul"), "Paul is not denied.");
+        }
+
+        [Test()]
+        public void TestDoubleAllow()
+        {
+
+            parser.Reset();
+            parser.Parse("allow from @Joe, @Paul;");
+            Assert.IsFalse(parser.Rules.Allow("Soraya"), "Soraya is allowed.");
+            Assert.IsTrue(parser.Rules.Allow("Paul"), "Paul is not allowed.");
+        }
+
+        [Test()]
+        public void TestAllTarget()
+        {
+
+            parser.Reset();
+            parser.Parse("allow from @Joe, @Paul;");
+            parser.Parse("deny from *;");
+            Assert.IsFalse(parser.Rules.Deny("Paul"), "Paul is denied.");
+            Assert.IsFalse(parser.Rules.Allow("Mom"), "Mom is allowed.");
+
+        }
+
+
+        [Test()]
+        public void ParserParseAll()
+        {
+            parser.Reset();
+            parser.Parse("TOUS: *;");
+        }
+
+        [Test()]
+        public void TestAllAllowedExceptPaul()
+        {
+
+            parser.Reset();
+            parser.Parse("deny from @Paul;");
+            parser.Parse("allow from *;");
+            Assert.IsTrue(parser.Rules.Deny("Paul"), "Paul isn't denied.");
+            Assert.IsFalse(parser.Rules.Deny("Mom"), "Mom is denied.");
+
+        }
     }
 }

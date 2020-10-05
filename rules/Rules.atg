@@ -30,36 +30,33 @@ CHARACTERS
     cr        = '\r'.
     lf        = '\n'.
     tab       = '\t'.
+    space     = ' '.
 
 TOKENS
     ident     = letter { letter | digit }.
-    groupMark = '#'.
-    userMark  = '@'.
+    allow     = "allow".
+    deny      = "deny".
+    from      = "from".
     and       = '&'.
     or        = '|'.
     not       = '^'.
-    allow     = "allow".
-    deny      = "deny".
-    all       = "all".
     semicolon = ';'.
-    from = "from".
 
 COMMENTS FROM "/*" TO "*/" NESTED
 COMMENTS FROM "//" TO lf
 
-IGNORE cr + lf + tab
+IGNORE cr + lf + tab + space
 
 PRODUCTIONS
 
-userId<out string id> = userMark ident (. id = t.val; .).
 
-groupId<out string id> = groupMark ident (. id = t.val; .).
-
-expression<out UserMatch exp> (. exp = null; .) = (. string uid; .) userId<out uid> (. exp = new SingleUserMatch(uid); .)
-           | (. string gid; .) groupId<out gid> (. exp = FindGroup(gid); .)
+expression<out UserMatch exp> (. exp = null; .) = 
+           '*' (. exp = new UserMatchAll(); .)
+           | '@' ident (. exp = new SingleUserMatch(t.val); .)
+           | '#' ident (. exp = FindGroup(t.val); .)
            | (. UserMatch left, right; .) expression<out left> and expression<out right> (. exp = left.And(right); .)
            | (. UserMatch left, right; .) expression<out left> or expression<out right> (. exp = left.And(right); .)
-           | (. UserMatch exp1; .)  not expression<out exp1> (. exp = exp1.Not(); .)
+           | (. UserMatch exp1; .) not expression<out exp1> (. exp = exp1.Not(); .)
            | (. UserMatch exp2; .) '(' expression<out exp2> ')' (. exp = exp2; .).
 
 definition (. UserMatch def = new UserMatchUnion(); UserMatch exp; .) 
@@ -67,9 +64,12 @@ definition (. UserMatch def = new UserMatchUnion(); UserMatch exp; .)
      ':' expression<out exp> (. def=def.Or(exp); .) 
      { ',' expression<out exp>  (. def=def.Or(exp); .) } semicolon.
 
-rule<out Rule ruleItem> = (. UserMatch exp; bool allow=false; .) ( allow (. allow = true; .) | deny (. allow = false; .) ) from expression<out exp> (. ruleItem = allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp) ; .) semicolon.
+rule = (. UserMatch exp; bool allow=false; .) ( allow (. allow = true; .) | deny (. allow = false; .) ) from 
+  expression<out exp> (. Rules.Add(allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp)); .) 
+  { ',' expression<out exp> (. Rules.Add(allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp)); .) }
+  semicolon.
 
-rules (. Rule ruleItem; .) = { definition } { rule<out ruleItem> (. Rules.Add(ruleItem); .) } .
+rules = { definition } { rule } .
 
 END rules
 .

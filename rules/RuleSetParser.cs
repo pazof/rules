@@ -31,7 +31,7 @@ namespace rules
             scanner = new Scanner(inputFileName);
             parser = new Parser(scanner);
             initParser();
-            parser.Parse();
+            UseParser();
         }
 
         public void Parse(Stream input)
@@ -39,7 +39,7 @@ namespace rules
             scanner = new Scanner(input);
             parser = new Parser(scanner);
             initParser();
-            parser.Parse();
+            UseParser();
         }
 
         public void Parse(string input)
@@ -48,7 +48,14 @@ namespace rules
             scanner = new Scanner(memStream);
             parser = new Parser(scanner);
             initParser();
+            UseParser();
+        }
+
+        void UseParser()
+        {
             parser.Parse();
+            if (parser.errors.count > 0)
+                throw new Exception("Parsing failed ");
         }
 
         public void Reset()

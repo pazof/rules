@@ -38,16 +38,13 @@ namespace rules {
 public class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
-	public const int _groupMark = 2;
-	public const int _userMark = 3;
-	public const int _and = 4;
-	public const int _or = 5;
-	public const int _not = 6;
-	public const int _allow = 7;
-	public const int _deny = 8;
-	public const int _all = 9;
-	public const int _semicolon = 10;
-	public const int _from = 11;
+	public const int _allow = 2;
+	public const int _deny = 3;
+	public const int _from = 4;
+	public const int _and = 5;
+	public const int _or = 6;
+	public const int _not = 7;
+	public const int _semicolon = 8;
 	public const int maxT = 16;
 
 	const bool _T = true;
@@ -139,41 +136,32 @@ public void CreateGroup(string gid, UserMatch exp)
 	}
 
 	
-	void userId(out string id) {
-		Expect(3);
-		Expect(1);
-		id = t.val; 
-	}
-
-	void groupId(out string id) {
-		Expect(2);
-		Expect(1);
-		id = t.val; 
-	}
-
 	void expression(out UserMatch exp) {
 		exp = null; 
-		if (la.kind == 3) {
-			string uid; 
-			userId(out uid);
-			exp = new SingleUserMatch(uid); 
-		} else if (la.kind == 2) {
-			string gid; 
-			groupId(out gid);
-			exp = FindGroup(gid); 
-		} else if (StartOf(1)) {
-			UserMatch left, right; 
-			expression(out left);
-			Expect(4);
-			expression(out right);
-			exp = left.And(right); 
+		if (la.kind == 9) {
+			Get();
+			exp = new UserMatchAll(); 
+		} else if (la.kind == 10) {
+			Get();
+			Expect(1);
+			exp = new SingleUserMatch(t.val); 
+		} else if (la.kind == 11) {
+			Get();
+			Expect(1);
+			exp = FindGroup(t.val); 
 		} else if (StartOf(1)) {
 			UserMatch left, right; 
 			expression(out left);
 			Expect(5);
 			expression(out right);
 			exp = left.And(right); 
-		} else if (la.kind == 6) {
+		} else if (StartOf(1)) {
+			UserMatch left, right; 
+			expression(out left);
+			Expect(6);
+			expression(out right);
+			exp = left.And(right); 
+		} else if (la.kind == 7) {
 			UserMatch exp1; 
 			Get();
 			expression(out exp1);
@@ -199,32 +187,35 @@ public void CreateGroup(string gid, UserMatch exp)
 			expression(out exp);
 			def=def.Or(exp); 
 		}
-		Expect(10);
+		Expect(8);
 	}
 
-	void rule(out Rule ruleItem) {
+	void rule() {
 		UserMatch exp; bool allow=false; 
-		if (la.kind == 7) {
+		if (la.kind == 2) {
 			Get();
 			allow = true; 
-		} else if (la.kind == 8) {
+		} else if (la.kind == 3) {
 			Get();
 			allow = false; 
 		} else SynErr(18);
-		Expect(11);
+		Expect(4);
 		expression(out exp);
-		ruleItem = allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp) ; 
-		Expect(10);
+		Rules.Add(allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp)); 
+		while (la.kind == 15) {
+			Get();
+			expression(out exp);
+			Rules.Add(allow ? (Rule) new AllowingRule(exp) : new DenyingRule(exp)); 
+		}
+		Expect(8);
 	}
 
 	void rules() {
-		Rule ruleItem; 
 		while (la.kind == 1) {
 			definition();
 		}
-		while (la.kind == 7 || la.kind == 8) {
-			rule(out ruleItem);
-			Rules.Add(ruleItem); 
+		while (la.kind == 2 || la.kind == 3) {
+			rule();
 		}
 	}
 
@@ -241,7 +232,7 @@ public void CreateGroup(string gid, UserMatch exp)
 	
 	static readonly bool[,] set = {
 		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_T,_T, _x,_x,_T,_x, _x,_x,_x,_x, _T,_x,_x,_x, _x,_x}
+		{_x,_x,_x,_x, _x,_x,_x,_T, _x,_T,_T,_T, _T,_x,_x,_x, _x,_x}
 
 	};
 } // end Parser
@@ -249,7 +240,7 @@ public void CreateGroup(string gid, UserMatch exp)
 
 public class Errors {
 	public int count = 0;                                    // number of errors detected
-	public System.IO.TextWriter errorStream = Console.Out;   // error messages go to this stream
+	public System.IO.TextWriter errorStream = Console.Error;   // error messages go to this stream
 	public string errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
 
 	public virtual void SynErr (int line, int col, int n) {
@@ -257,16 +248,16 @@ public class Errors {
 		switch (n) {
 			case 0: s = "EOF expected"; break;
 			case 1: s = "ident expected"; break;
-			case 2: s = "groupMark expected"; break;
-			case 3: s = "userMark expected"; break;
-			case 4: s = "and expected"; break;
-			case 5: s = "or expected"; break;
-			case 6: s = "not expected"; break;
-			case 7: s = "allow expected"; break;
-			case 8: s = "deny expected"; break;
-			case 9: s = "all expected"; break;
-			case 10: s = "semicolon expected"; break;
-			case 11: s = "from expected"; break;
+			case 2: s = "allow expected"; break;
+			case 3: s = "deny expected"; break;
+			case 4: s = "from expected"; break;
+			case 5: s = "and expected"; break;
+			case 6: s = "or expected"; break;
+			case 7: s = "not expected"; break;
+			case 8: s = "semicolon expected"; break;
+			case 9: s = "\"*\" expected"; break;
+			case 10: s = "\"@\" expected"; break;
+			case 11: s = "\"#\" expected"; break;
 			case 12: s = "\"(\" expected"; break;
 			case 13: s = "\")\" expected"; break;
 			case 14: s = "\":\" expected"; break;

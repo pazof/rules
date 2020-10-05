@@ -8,6 +8,7 @@
     <RootNamespace>rules</RootNamespace>
     <AssemblyName>rules</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,8 +29,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -44,6 +43,12 @@
     <Compile Include="Parser.cs" />
     <Compile Include="Scanner.cs" />
     <Compile Include="Rule.cs" />
+    <Compile Include="RuleSetDefault.cs" />
+    <Compile Include="RuleSet.cs" />
+    <Compile Include="DenyingRule.cs" />
+    <Compile Include="AllowingRule.cs" />
+    <Compile Include="UserMatchAll.cs" />
+    <Compile Include="DefinitionSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Rules.atg" />

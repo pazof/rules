@@ -255,16 +255,17 @@ public class Scanner {
 		for (int i = 65; i <= 90; ++i) start[i] = 1;
 		for (int i = 95; i <= 95; ++i) start[i] = 1;
 		for (int i = 97; i <= 122; ++i) start[i] = 1;
-		start[35] = 2; 
-		start[64] = 3; 
-		start[38] = 4; 
-		start[124] = 5; 
-		start[94] = 6; 
-		start[59] = 7; 
-		start[40] = 8; 
-		start[41] = 9; 
-		start[58] = 10; 
-		start[44] = 11; 
+		start[38] = 2; 
+		start[124] = 3; 
+		start[94] = 4; 
+		start[59] = 5; 
+		start[42] = 6; 
+		start[64] = 7; 
+		start[35] = 8; 
+		start[40] = 9; 
+		start[41] = 10; 
+		start[58] = 11; 
+		start[44] = 12; 
 		start[Buffer.EOF] = -1;
 
 	}
@@ -377,17 +378,16 @@ public class Scanner {
 
 	void CheckLiteral() {
 		switch (t.val) {
-			case "allow": t.kind = 7; break;
-			case "deny": t.kind = 8; break;
-			case "all": t.kind = 9; break;
-			case "from": t.kind = 11; break;
+			case "allow": t.kind = 2; break;
+			case "deny": t.kind = 3; break;
+			case "from": t.kind = 4; break;
 			default: break;
 		}
 	}
 
 	Token NextToken() {
 		while (ch == ' ' ||
-			ch >= 9 && ch <= 10 || ch == 13
+			ch >= 9 && ch <= 10 || ch == 13 || ch == ' '
 		) NextCh();
 		if (ch == '/' && Comment0() ||ch == '/' && Comment1()) return NextToken();
 		int recKind = noSym;
@@ -412,24 +412,26 @@ public class Scanner {
 				if (ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch == '_' || ch >= 'a' && ch <= 'z') {AddCh(); goto case 1;}
 				else {t.kind = 1; t.val = new String(tval, 0, tlen); CheckLiteral(); return t;}
 			case 2:
-				{t.kind = 2; break;}
-			case 3:
-				{t.kind = 3; break;}
-			case 4:
-				{t.kind = 4; break;}
-			case 5:
 				{t.kind = 5; break;}
-			case 6:
+			case 3:
 				{t.kind = 6; break;}
+			case 4:
+				{t.kind = 7; break;}
+			case 5:
+				{t.kind = 8; break;}
+			case 6:
+				{t.kind = 9; break;}
 			case 7:
 				{t.kind = 10; break;}
 			case 8:
-				{t.kind = 12; break;}
+				{t.kind = 11; break;}
 			case 9:
-				{t.kind = 13; break;}
+				{t.kind = 12; break;}
 			case 10:
-				{t.kind = 14; break;}
+				{t.kind = 13; break;}
 			case 11:
+				{t.kind = 14; break;}
+			case 12:
 				{t.kind = 15; break;}
 
 		}
