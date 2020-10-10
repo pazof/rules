@@ -19,6 +19,6 @@ test: rules/bin/$(CONFIGURATION)/rules.dll test/bin/$(CONFIGURATION)/test.dll
 	$(NUNITCONSOLE) test/bin/$(CONFIGURATION)/test.dll
 
 pack:
-	$(NUGET) pack rules/rules.csproj
+	$(NUGET) pack rules.nuspec
 
 .PHONY: test

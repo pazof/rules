@@ -8,7 +8,11 @@
     <RootNamespace>rules</RootNamespace>
     <AssemblyName>rules</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <PackageId>pazof.rules</PackageId>
     <Version>1.1.0</Version>
+    <Authors>Paul Schneider</Authors>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageOutputPath>..</PackageOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -55,6 +59,7 @@
     <None Include="Copyright.frame" />
     <None Include="Parser.frame" />
     <None Include="Scanner.frame" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt"/>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
